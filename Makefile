@@ -1,4 +1,4 @@
-BINARY = prometheus-msteams
+BINARY =nets-aric-prometheus-msteams
 VET_REPORT = vet.report
 TEST_REPORT = tests.xml
 GOARCH = amd64
@@ -11,7 +11,7 @@ GOFMT_FILES?=$$(find . -name '*.go')
 GO := GO111MODULE=on go
 
 # Symlink into GOPATH
-GITHUB_USERNAME=prometheus-msteams
+GITHUB_USERNAME=nets-aric-prometheus-msteams
 BUILD_DIR=$(GOPATH)/src/github.com/$(GITHUB_USERNAME)/$(BINARY)
 VERSION_PKG=github.com/$(GITHUB_USERNAME)/prometheus-msteams/pkg/version
 
@@ -26,6 +26,10 @@ RUN_ARGS ?=
 DOCKER_QUAY_REPO=quay.io/prometheusmsteams/prometheus-msteams
 DOCKER_QUAY_USER=prometheusmsteams+ci
 DOCKER_HUB_REPO=prometheusmsteams/prometheus-msteams
+
+# docker-nets-aric
+DOCKER_NETS-ARIC_REPO=nets-aric-prom2teams
+
 
 # Build the project
 all: clean dep create_bin_dir linux darwin windows
@@ -46,6 +50,14 @@ darwin:
 
 windows:
 	CGO_ENABLED=0 GOOS=windows GOARCH=$(GOARCH) $(GO) build $(LDFLAGS) -o $(BINDIR)/$(BINARY)-windows-$(GOARCH).exe ./cmd/server
+	
+docker-nets-aric:
+	docker build -t $(DOCKER_NETS-ARIC_REPO) .
+
+docker-nets-aric-push:
+	aws ecr get-login-password --region eu-west-2 | docker login --username AWS --password-stdin 786912520091.dkr.ecr.eu-west-2.amazonaws.com
+	docker tag $(DOCKER_NETS-ARIC_REPO) 786912520091.dkr.ecr.eu-west-2.amazonaws.com/$(DOCKER_NETS-ARIC_REPO):0.1
+	docker push 786912520091.dkr.ecr.eu-west-2.amazonaws.com/$(DOCKER_NETS-ARIC_REPO):0.1
 
 docker:
 	docker build -t $(DOCKER_HUB_REPO):$(VERSION) .
